@@ -58,6 +58,28 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "avatar_url", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "is_verified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    (0, class_transformer_1.Exclude)(),
+    __metadata("design:type", String)
+], User.prototype, "verification_token", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'datetime' }),
+    __metadata("design:type", Date)
+], User.prototype, "verification_expires", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    (0, class_transformer_1.Exclude)(),
+    __metadata("design:type", String)
+], User.prototype, "reset_password_token", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'datetime' }),
+    __metadata("design:type", Date)
+], User.prototype, "reset_password_expires", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);

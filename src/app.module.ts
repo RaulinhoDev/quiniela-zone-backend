@@ -7,6 +7,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
+import { EmailModule } from './email/email.module';
 import { CompetitionsModule } from './competitions/competitions.module';
 import { QuinielasModule } from './quinielas/quinielas.module';
 
@@ -52,6 +53,7 @@ import { ScoringRule } from './quinielas/scoring-rule.entity';
     AuthModule,
     UsersModule,
     AdminModule,
+    EmailModule,
     CompetitionsModule,
     QuinielasModule,
   ],

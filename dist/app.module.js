@@ -15,6 +15,7 @@ const throttler_1 = require("@nestjs/throttler");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const admin_module_1 = require("./admin/admin.module");
+const email_module_1 = require("./email/email.module");
 const competitions_module_1 = require("./competitions/competitions.module");
 const quinielas_module_1 = require("./quinielas/quinielas.module");
 const user_entity_1 = require("./users/user.entity");
@@ -58,6 +59,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             admin_module_1.AdminModule,
+            email_module_1.EmailModule,
             competitions_module_1.CompetitionsModule,
             quinielas_module_1.QuinielasModule,
         ],

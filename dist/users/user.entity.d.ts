@@ -12,6 +12,11 @@ export declare class User {
     role: UserRole;
     is_premium: boolean;
     avatar_url: string;
+    is_verified: boolean;
+    verification_token: string;
+    verification_expires: Date;
+    reset_password_token: string;
+    reset_password_expires: Date;
     created_at: Date;
     updated_at: Date;
 }
