@@ -49,7 +49,10 @@ import { ScoringRule } from './quinielas/scoring-rule.entity';
 
     ScheduleModule.forRoot(),
 
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    ThrottlerModule.forRoot([
+      { name: 'global', ttl: 60000,  limit: 60  }, // 60 req/min global
+      { name: 'auth',   ttl: 300000, limit: 5   }, // 5 intentos cada 5 min en auth
+    ]),
 
     AuthModule,
     UsersModule,

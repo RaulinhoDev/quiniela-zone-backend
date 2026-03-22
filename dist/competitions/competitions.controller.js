@@ -26,6 +26,12 @@ let CompetitionsController = class CompetitionsController {
     findOne(id) { return this.service.findOne(id); }
     getMatchdays(id) { return this.service.getMatchdays(id); }
     getMatchday(id) { return this.service.getMatchdayWithMatches(id); }
+    getTemporadas(id) {
+        return this.service.getTemporadas(id);
+    }
+    getTorneos(id, season) {
+        return this.service.getTorneos(id, season);
+    }
     syncTemporada(body) {
         return this.service.syncTemporada(body.competition_api_id, body.season);
     }
@@ -63,6 +69,21 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CompetitionsController.prototype, "getMatchday", null);
+__decorate([
+    (0, common_1.Get)(':id/temporadas'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CompetitionsController.prototype, "getTemporadas", null);
+__decorate([
+    (0, common_1.Get)(':id/torneos'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('season')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", void 0)
+], CompetitionsController.prototype, "getTorneos", null);
 __decorate([
     (0, common_1.Post)('admin/sync'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),

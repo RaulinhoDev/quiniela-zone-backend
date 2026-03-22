@@ -16,6 +16,7 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const auth_service_1 = require("./auth.service");
+const throttler_1 = require("@nestjs/throttler");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -45,6 +46,7 @@ let AuthController = class AuthController {
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('register'),
+    (0, throttler_1.Throttle)({ auth: { ttl: 300000, limit: 15 } }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -52,6 +54,7 @@ __decorate([
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
+    (0, throttler_1.Throttle)({ auth: { ttl: 300000, limit: 15 } }),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -101,6 +104,7 @@ __decorate([
 ], AuthController.prototype, "updateProfile", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
+    (0, common_1.UseGuards)(throttler_1.ThrottlerGuard),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

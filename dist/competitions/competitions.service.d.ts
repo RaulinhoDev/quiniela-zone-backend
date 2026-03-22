@@ -20,6 +20,8 @@ export declare class CompetitionsService {
     getMatchdayWithMatches(matchdayId: number): Promise<Matchday>;
     syncTemporada(competitionApiId: number, season: string): Promise<void>;
     syncResultadosEnVivo(): Promise<void>;
+    getTemporadas(competitionId: number): Promise<any[]>;
+    getTorneos(competitionId: number, season: string): Promise<any[]>;
     createMatchday(data: Partial<Matchday>): Promise<Matchday>;
     createMatch(data: Partial<Match>): Promise<Match>;
     updateResult(matchId: number, homeScore: number, awayScore: number): Promise<Match>;

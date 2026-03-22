@@ -144,9 +144,19 @@ export class QuinielasService {
     if (!matchday) throw new NotFoundException('Jornada no encontrada');
     if (!matchday.matches.length) throw new BadRequestException('La jornada no tiene partidos registrados');
 
-    // Verificar que no haya otra jornada abierta
+    // Si hay una jornada abierta y ya pasó el closes_at, cerrarla automáticamente
     const jornadaAbierta = quiniela.jornadas?.find(j => j.status === JornadaStatus.ABIERTA);
-    if (jornadaAbierta) throw new BadRequestException('Ya hay una jornada abierta — cerrala antes de abrir la siguiente');
+    if (jornadaAbierta) {
+      const ahora = new Date();
+      if (new Date(jornadaAbierta.closes_at) < ahora) {
+        // Cerrar automáticamente
+        await this.jornadaRepo.update(jornadaAbierta.id, {
+          status: JornadaStatus.CERRADA,
+        });
+      } else {
+        throw new BadRequestException('Ya hay una jornada abierta — esperá a que cierre antes de abrir la siguiente');
+      }
+    }
 
     // Verificar que este matchday no fue usado antes en esta quiniela
     const yaUsado = quiniela.jornadas?.find(j => j.matchday_id === dto.matchday_id);

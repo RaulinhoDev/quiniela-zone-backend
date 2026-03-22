@@ -24,6 +24,21 @@ export class CompetitionsController {
   @Get('matchdays/:id')
   getMatchday(@Param('id', ParseIntPipe) id: number) { return this.service.getMatchdayWithMatches(id); }
 
+  // Temporadas disponibles para una competencia
+  @Get(':id/temporadas')
+  getTemporadas(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getTemporadas(id);
+  }
+
+  // Torneos disponibles para una competencia y temporada
+  @Get(':id/torneos')
+  getTorneos(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('season') season: string,
+  ) {
+    return this.service.getTorneos(id, season);
+  }
+
   // ── Admin — requieren rol ADMIN ───────────────────────────────
   @Post('admin/sync')
   @UseGuards(AuthGuard('jwt'), RolesGuard)

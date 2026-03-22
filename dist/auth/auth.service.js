@@ -47,6 +47,9 @@ let AuthService = class AuthService {
             verification_token,
             verification_expires,
         });
+        dto.email = dto.email.trim().toLowerCase();
+        dto.username = dto.username.trim().replace(/[^a-zA-Z0-9_]/g, '');
+        dto.full_name = dto.full_name?.trim().substring(0, 100);
         await this.userRepo.save(user);
         if (!isDev) {
             await this.emailService.sendVerificationEmail(user.email, user.username, verification_token);

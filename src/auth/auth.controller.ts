@@ -4,12 +4,15 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('auth')
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ auth: { ttl: 300000, limit: 15 } })
   register(@Body() dto: {
     email: string; username: string; password: string;
     full_name?: string; country?: string;
@@ -18,6 +21,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ auth: { ttl: 300000, limit: 15 } })
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: { email: string; password: string }) {
     return this.authService.login(dto);

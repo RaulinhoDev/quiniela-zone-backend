@@ -56,7 +56,10 @@ exports.AppModule = AppModule = __decorate([
                 }),
             }),
             schedule_1.ScheduleModule.forRoot(),
-            throttler_1.ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+            throttler_1.ThrottlerModule.forRoot([
+                { name: 'global', ttl: 60000, limit: 60 },
+                { name: 'auth', ttl: 300000, limit: 5 },
+            ]),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             admin_module_1.AdminModule,

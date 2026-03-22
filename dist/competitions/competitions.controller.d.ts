@@ -6,6 +6,8 @@ export declare class CompetitionsController {
     findOne(id: number): Promise<import("./competition.entity").Competition>;
     getMatchdays(id: number): Promise<import("../matchdays/matchday.entity").Matchday[]>;
     getMatchday(id: number): Promise<import("../matchdays/matchday.entity").Matchday>;
+    getTemporadas(id: number): Promise<any[]>;
+    getTorneos(id: number, season: string): Promise<any[]>;
     syncTemporada(body: {
         competition_api_id: number;
         season: string;

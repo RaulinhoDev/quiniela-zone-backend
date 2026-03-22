@@ -175,6 +175,23 @@ let CompetitionsService = CompetitionsService_1 = class CompetitionsService {
             }
         }
     }
+    async getTemporadas(competitionId) {
+        const matchdays = await this.matchdayRepo
+            .createQueryBuilder("m")
+            .select("DISTINCT m.season", "season")
+            .where("m.competition_id = :id", { id: competitionId })
+            .orderBy("m.season", "DESC")
+            .getRawMany();
+        return matchdays.map(m => m.season).filter(Boolean);
+    }
+    async getTorneos(competitionId, season) {
+        const matchdays = await this.matchdayRepo
+            .createQueryBuilder("m")
+            .select("DISTINCT m.torneo", "torneo")
+            .where("m.competition_id = :id AND m.season = :season", { id: competitionId, season })
+            .getRawMany();
+        return matchdays.map(m => m.torneo).filter(Boolean);
+    }
     async createMatchday(data) {
         return this.matchdayRepo.save(this.matchdayRepo.create(data));
     }

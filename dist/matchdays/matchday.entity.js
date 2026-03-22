@@ -9,10 +9,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Matchday = void 0;
+exports.Matchday = exports.TorneoType = void 0;
 const typeorm_1 = require("typeorm");
 const competition_entity_1 = require("../competitions/competition.entity");
 const match_entity_1 = require("../matches/match.entity");
+var TorneoType;
+(function (TorneoType) {
+    TorneoType["APERTURA"] = "Apertura";
+    TorneoType["CLAUSURA"] = "Clausura";
+    TorneoType["UNICO"] = "\u00DAnico";
+    TorneoType["OTRO"] = "Otro";
+})(TorneoType || (exports.TorneoType = TorneoType = {}));
 let Matchday = class Matchday {
 };
 exports.Matchday = Matchday;
@@ -37,6 +44,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Matchday.prototype, "season", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Matchday.prototype, "torneo", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
