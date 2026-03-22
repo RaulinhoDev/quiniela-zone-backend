@@ -18,6 +18,7 @@ const admin_module_1 = require("./admin/admin.module");
 const email_module_1 = require("./email/email.module");
 const competitions_module_1 = require("./competitions/competitions.module");
 const quinielas_module_1 = require("./quinielas/quinielas.module");
+const stripe_module_1 = require("./stripe/stripe.module");
 const user_entity_1 = require("./users/user.entity");
 const competition_entity_1 = require("./competitions/competition.entity");
 const matchday_entity_1 = require("./matchdays/matchday.entity");
@@ -62,6 +63,7 @@ exports.AppModule = AppModule = __decorate([
             email_module_1.EmailModule,
             competitions_module_1.CompetitionsModule,
             quinielas_module_1.QuinielasModule,
+            stripe_module_1.StripeModule,
         ],
     })
 ], AppModule);

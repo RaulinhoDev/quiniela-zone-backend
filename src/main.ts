@@ -3,7 +3,9 @@ import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // Necesario para webhooks de Stripe
+  });
 
   app.setGlobalPrefix('api/v1');
 
@@ -25,29 +27,9 @@ async function bootstrap() {
 
   console.log(`
   ╔══════════════════════════════════════════╗
-  ║   Quiniela Zone — Backend corriendo    ║
+  ║   Quiniela Zone — Backend corriendo     ║
   ║   http://localhost:${port}/api/v1           ║
   ╚══════════════════════════════════════════╝
-
-  AUTH
-  POST  /api/v1/auth/register
-  POST  /api/v1/auth/login
-
-  COMPETENCIAS
-  GET   /api/v1/competitions
-  GET   /api/v1/competitions/:id/matchdays
-  GET   /api/v1/competitions/matchdays/:id
-  POST  /api/v1/competitions/admin/sync        (ADMIN)
-  POST  /api/v1/competitions/admin/match/:id/result (ADMIN)
-
-  QUINIELAS
-  POST  /api/v1/quinielas                      crear quiniela
-  GET   /api/v1/quinielas/:id/ranking          ranking público
-  POST  /api/v1/quinielas/unirse/codigo        unirse por código
-  POST  /api/v1/quinielas/:id/jornadas         abrir jornada (owner)
-  POST  /api/v1/quinielas/:id/jornadas/:jId/predicciones
-  GET   /api/v1/quinielas/:id/jornadas/:jId/mis-predicciones
-  GET   /api/v1/quinielas/mis/quinielas
   `);
 }
 

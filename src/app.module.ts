@@ -10,6 +10,7 @@ import { AdminModule } from './admin/admin.module';
 import { EmailModule } from './email/email.module';
 import { CompetitionsModule } from './competitions/competitions.module';
 import { QuinielasModule } from './quinielas/quinielas.module';
+import { StripeModule } from './stripe/stripe.module';
 
 import { User } from './users/user.entity';
 import { Competition } from './competitions/competition.entity';
@@ -56,6 +57,7 @@ import { ScoringRule } from './quinielas/scoring-rule.entity';
     EmailModule,
     CompetitionsModule,
     QuinielasModule,
+    StripeModule,
   ],
 })
 export class AppModule {}

@@ -39,6 +39,13 @@ export class User {
   @Column({ nullable: true })
   avatar_url: string;
 
+  // Stripe
+  @Column({ nullable: true })
+  stripe_customer_id: string;
+
+  @Column({ nullable: true })
+  stripe_subscription_id: string;
+
   // Verificación de email
   @Column({ default: false })
   is_verified: boolean;

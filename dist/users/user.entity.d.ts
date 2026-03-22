@@ -12,6 +12,8 @@ export declare class User {
     role: UserRole;
     is_premium: boolean;
     avatar_url: string;
+    stripe_customer_id: string;
+    stripe_subscription_id: string;
     is_verified: boolean;
     verification_token: string;
     verification_expires: Date;
