@@ -8,7 +8,7 @@ export class StripeService {
   private readonly logger = new Logger(StripeService.name);
 
   constructor(private config: ConfigService) {
-    this.stripe = new Stripe(this.config.get('STRIPE_SECRET_KEY'), {
+    this.stripe = new Stripe(this.config.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2026-02-25.clover',
     });
   }
@@ -21,15 +21,15 @@ export class StripeService {
       customer_email:        email,
       line_items: [
         {
-          price:    this.config.get('STRIPE_PRICE_ID'),
+          price:    this.config.get('STRIPE_PRICE_ID') ?? '',
           quantity: 1,
         },
       ],
       metadata: { userId: String(userId) },
-      success_url: `${this.config.get('APP_URL')}/app/premium/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${this.config.get('APP_URL')}/app/premium/cancel`,
+      success_url: `${this.config.get('APP_URL') ?? ''}/app/premium/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${this.config.get('APP_URL') ?? ''}/app/premium/cancel`,
     });
-    return session.url;
+    return session.url ?? '';
   }
 
   // Crear portal de cliente para gestionar suscripción
@@ -46,7 +46,7 @@ export class StripeService {
     return this.stripe.webhooks.constructEvent(
       payload,
       signature,
-      this.config.get('STRIPE_WEBHOOK_SECRET'),
+      this.config.get('STRIPE_WEBHOOK_SECRET') ?? '',
     );
   }
 

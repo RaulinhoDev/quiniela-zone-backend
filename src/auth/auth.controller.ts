@@ -51,7 +51,7 @@ export class AuthController {
   @Patch('change-password')
   @UseGuards(AuthGuard('jwt'))
   changePassword(
-    @Request() req,
+    @Request() req: { user: { id: number } },
     @Body() dto: { current_password: string; new_password: string }
   ) {
     return this.authService.changePassword(
@@ -63,9 +63,24 @@ export class AuthController {
   @Patch('profile')
   @UseGuards(AuthGuard('jwt'))
   updateProfile(
-    @Request() req,
+    @Request() req: { user: { id: number } },
     @Body() dto: { full_name?: string; country?: string }
   ) {
     return this.authService.updateProfile(req.user.id, dto);
+  }
+
+  // Renovar access token con refresh token
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(@Body() dto: { refresh_token: string }) {
+    return this.authService.refreshToken(dto.refresh_token);
+  }
+
+  // Cerrar sesión y revocar refresh token
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  logout(@Request() req: { user: { id: number } }) {
+    return this.authService.revokeRefreshToken(req.user.id);
   }
 }

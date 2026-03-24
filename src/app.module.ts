@@ -11,6 +11,7 @@ import { EmailModule } from './email/email.module';
 import { CompetitionsModule } from './competitions/competitions.module';
 import { QuinielasModule } from './quinielas/quinielas.module';
 import { StripeModule } from './stripe/stripe.module';
+import { EventsModule } from './events/events.module';
 
 import { User } from './users/user.entity';
 import { Competition } from './competitions/competition.entity';
@@ -61,6 +62,7 @@ import { ScoringRule } from './quinielas/scoring-rule.entity';
     CompetitionsModule,
     QuinielasModule,
     StripeModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

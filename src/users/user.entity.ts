@@ -65,6 +65,14 @@ export class User {
   @Column({ nullable: true, type: 'datetime' })
   reset_password_expires: Date;
 
+  // Refresh token
+  @Column({ nullable: true })
+  @Exclude()
+  refresh_token: string;
+
+  @Column({ nullable: true, type: 'datetime' })
+  refresh_token_expires: Date;
+
   @CreateDateColumn()
   created_at: Date;
 

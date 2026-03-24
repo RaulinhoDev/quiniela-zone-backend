@@ -9,6 +9,7 @@ import { Competition } from './competition.entity';
 import { Matchday } from '../matchdays/matchday.entity';
 import { Match, MatchStatus } from '../matches/match.entity';
 import { QuinielasService } from '../quinielas/quinielas.service';
+import { SseService } from '../events/sse.service';
 
 @Injectable()
 export class CompetitionsService {
@@ -21,6 +22,7 @@ export class CompetitionsService {
     private httpService: HttpService,
     private configService: ConfigService,
     private quinielasService: QuinielasService,
+    private sseService: SseService,
   ) {}
 
   // ─── Endpoints públicos ────────────────────────────────────────
@@ -97,7 +99,7 @@ export class CompetitionsService {
     for (const [roundName, roundFixtures] of Object.entries(byRound)) {
       // Extraer número de jornada del nombre (ej: "Regular Season - 1" → 1)
       const roundMatch = roundName.match(/(\d+)$/);
-      const roundNumber = roundMatch ? parseInt(roundMatch[1]) : null;
+      const roundNumber = roundMatch ? parseInt(roundMatch[1]) : undefined;
 
       // Buscar o crear jornada
       let matchday = await this.matchdayRepo.findOne({
@@ -188,10 +190,24 @@ export class CompetitionsService {
           away_score: f.goals.away,
         });
 
-        // Si acaba de terminar → calcular puntos
+        // Si acaba de terminar → calcular puntos y notificar por SSE
         if (!eraFinalizado && esFinalizado) {
           this.logger.log(`⚽ Partido terminado: ${partido.home_team} ${f.goals.home}-${f.goals.away} ${partido.away_team}`);
+          const quinielaIds = await this.quinielasService.getQuinielasForMatch(partido.id);
           await this.quinielasService.calcularPuntos(partido.id);
+          this.sseService.emitToAll(
+            quinielaIds, partido.id,
+            partido.home_team, partido.away_team,
+            f.goals.home, f.goals.away,
+          );
+        } else if (nuevoStatus === MatchStatus.LIVE && partido.status !== MatchStatus.LIVE) {
+          // Partido comenzó en vivo — notificar también
+          const quinielaIds = await this.quinielasService.getQuinielasForMatch(partido.id);
+          this.sseService.emitToAll(
+            quinielaIds, partido.id,
+            partido.home_team, partido.away_team,
+            f.goals.home ?? 0, f.goals.away ?? 0,
+          );
         }
 
         await this.sleep(300);
@@ -230,6 +246,7 @@ export class CompetitionsService {
     return this.matchRepo.save(this.matchRepo.create(data));
   }
 
+
   async updateResult(matchId: number, homeScore: number, awayScore: number) {
     const match = await this.matchRepo.findOne({ where: { id: matchId } });
     if (!match) throw new NotFoundException('Partido no encontrado');
@@ -243,7 +260,13 @@ export class CompetitionsService {
     });
 
     if (!eraFinalizado) {
+      const quinielaIds = await this.quinielasService.getQuinielasForMatch(matchId);
       await this.quinielasService.calcularPuntos(matchId);
+      this.sseService.emitToAll(
+        quinielaIds, matchId,
+        match.home_team, match.away_team,
+        homeScore, awayScore,
+      );
     }
 
     return this.matchRepo.findOne({ where: { id: matchId } });

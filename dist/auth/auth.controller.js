@@ -42,6 +42,12 @@ let AuthController = class AuthController {
     updateProfile(req, dto) {
         return this.authService.updateProfile(req.user.id, dto);
     }
+    refresh(dto) {
+        return this.authService.refreshToken(dto.refresh_token);
+    }
+    logout(req) {
+        return this.authService.revokeRefreshToken(req.user.id);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -102,6 +108,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Post)('refresh'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "refresh", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     (0, common_1.UseGuards)(throttler_1.ThrottlerGuard),

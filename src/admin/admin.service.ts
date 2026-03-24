@@ -33,20 +33,28 @@ export class AdminService {
 
     const [
       totalUsuarios,
+      usuariosPremium,
       usuariosEstaSemana,
       totalQuinielas,
       quinielasActivas,
       quinielasEsperando,
+      quinielasFinalizadas,
+      totalParticipantes,
       totalPredicciones,
+      prediccionesEstaSemana,
       partidosHoy,
       partidosEnVivo,
     ] = await Promise.all([
       this.userRepo.count(),
+      this.userRepo.count({ where: { is_premium: true } }),
       this.userRepo.count({ where: { created_at: MoreThanOrEqual(inicioSemana) } }),
       this.quinielaRepo.count(),
       this.quinielaRepo.count({ where: { status: QuinielaStatus.ACTIVA } }),
       this.quinielaRepo.count({ where: { status: QuinielaStatus.ESPERANDO } }),
+      this.quinielaRepo.count({ where: { status: QuinielaStatus.FINALIZADA } }),
+      this.participanteRepo.count(),
       this.prediccionRepo.count(),
+      this.prediccionRepo.createQueryBuilder('p').where('p.created_at >= :inicio', { inicio: inicioSemana }).getCount(),
       this.matchRepo
         .createQueryBuilder('m')
         .where('m.match_date >= :hoy', { hoy })
@@ -57,7 +65,7 @@ export class AdminService {
 
     // Últimos 5 usuarios registrados
     const ultimosUsuarios = await this.userRepo.find({
-      select: ['id', 'username', 'email', 'country', 'role', 'created_at'],
+      select: ['id', 'username', 'email', 'country', 'role', 'is_premium', 'created_at'],
       order: { created_at: 'DESC' },
       take: 5,
     })
@@ -82,11 +90,15 @@ export class AdminService {
     return {
       metricas: {
         totalUsuarios,
+        usuariosPremium,
         usuariosEstaSemana,
         totalQuinielas,
         quinielasActivas,
         quinielasEsperando,
+        quinielasFinalizadas,
+        totalParticipantes,
         totalPredicciones,
+        prediccionesEstaSemana,
         partidosHoy,
         partidosEnVivo,
       },

@@ -25,14 +25,16 @@ const competition_entity_1 = require("./competition.entity");
 const matchday_entity_1 = require("../matchdays/matchday.entity");
 const match_entity_1 = require("../matches/match.entity");
 const quinielas_service_1 = require("../quinielas/quinielas.service");
+const sse_service_1 = require("../events/sse.service");
 let CompetitionsService = CompetitionsService_1 = class CompetitionsService {
-    constructor(compRepo, matchdayRepo, matchRepo, httpService, configService, quinielasService) {
+    constructor(compRepo, matchdayRepo, matchRepo, httpService, configService, quinielasService, sseService) {
         this.compRepo = compRepo;
         this.matchdayRepo = matchdayRepo;
         this.matchRepo = matchRepo;
         this.httpService = httpService;
         this.configService = configService;
         this.quinielasService = quinielasService;
+        this.sseService = sseService;
         this.logger = new common_1.Logger(CompetitionsService_1.name);
     }
     findAll() {
@@ -91,7 +93,7 @@ let CompetitionsService = CompetitionsService_1 = class CompetitionsService {
         let partidosCreados = 0;
         for (const [roundName, roundFixtures] of Object.entries(byRound)) {
             const roundMatch = roundName.match(/(\d+)$/);
-            const roundNumber = roundMatch ? parseInt(roundMatch[1]) : null;
+            const roundNumber = roundMatch ? parseInt(roundMatch[1]) : undefined;
             let matchday = await this.matchdayRepo.findOne({
                 where: { competition_id: competition.id, name: roundName, season },
             });
@@ -166,7 +168,13 @@ let CompetitionsService = CompetitionsService_1 = class CompetitionsService {
                 });
                 if (!eraFinalizado && esFinalizado) {
                     this.logger.log(`⚽ Partido terminado: ${partido.home_team} ${f.goals.home}-${f.goals.away} ${partido.away_team}`);
+                    const quinielaIds = await this.quinielasService.getQuinielasForMatch(partido.id);
                     await this.quinielasService.calcularPuntos(partido.id);
+                    this.sseService.emitToAll(quinielaIds, partido.id, partido.home_team, partido.away_team, f.goals.home, f.goals.away);
+                }
+                else if (nuevoStatus === match_entity_1.MatchStatus.LIVE && partido.status !== match_entity_1.MatchStatus.LIVE) {
+                    const quinielaIds = await this.quinielasService.getQuinielasForMatch(partido.id);
+                    this.sseService.emitToAll(quinielaIds, partido.id, partido.home_team, partido.away_team, f.goals.home ?? 0, f.goals.away ?? 0);
                 }
                 await this.sleep(300);
             }
@@ -209,7 +217,9 @@ let CompetitionsService = CompetitionsService_1 = class CompetitionsService {
             status: match_entity_1.MatchStatus.FINISHED,
         });
         if (!eraFinalizado) {
+            const quinielaIds = await this.quinielasService.getQuinielasForMatch(matchId);
             await this.quinielasService.calcularPuntos(matchId);
+            this.sseService.emitToAll(quinielaIds, matchId, match.home_team, match.away_team, homeScore, awayScore);
         }
         return this.matchRepo.findOne({ where: { id: matchId } });
     }
@@ -246,6 +256,7 @@ exports.CompetitionsService = CompetitionsService = CompetitionsService_1 = __de
         typeorm_2.Repository,
         axios_1.HttpService,
         config_1.ConfigService,
-        quinielas_service_1.QuinielasService])
+        quinielas_service_1.QuinielasService,
+        sse_service_1.SseService])
 ], CompetitionsService);
 //# sourceMappingURL=competitions.service.js.map

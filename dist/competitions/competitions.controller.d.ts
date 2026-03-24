@@ -17,5 +17,5 @@ export declare class CompetitionsController {
     updateResult(id: number, body: {
         home_score: number;
         away_score: number;
-    }): Promise<import("../matches/match.entity").Match>;
+    }): Promise<import("../matches/match.entity").Match | null>;
 }

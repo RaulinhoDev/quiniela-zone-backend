@@ -8,7 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { StripeService } from './stripe.service';
 import { User } from '../users/user.entity';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+
+type AuthReq = { user: { id: number } };
 
 @Controller('stripe')
 export class StripeController {
@@ -20,16 +22,18 @@ export class StripeController {
 
   @Post('checkout')
   @UseGuards(AuthGuard('jwt'))
-  async checkout(@Request() req) {
+  async checkout(@Request() req: AuthReq) {
     const user = await this.userRepo.findOne({ where: { id: req.user.id } });
-    const url  = await this.stripeService.createCheckoutSession(user.id, user.email);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    const url = await this.stripeService.createCheckoutSession(user.id, user.email);
     return { url };
   }
 
   @Post('portal')
   @UseGuards(AuthGuard('jwt'))
-  async portal(@Request() req) {
+  async portal(@Request() req: AuthReq) {
     const user = await this.userRepo.findOne({ where: { id: req.user.id } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
     if (!user.stripe_customer_id) {
       throw new BadRequestException('No tenés una suscripción activa');
     }
@@ -47,13 +51,13 @@ export class StripeController {
     const webhookSecret = this.config.get('STRIPE_WEBHOOK_SECRET');
 
     if (webhookSecret) {
+      if (!req.rawBody) throw new BadRequestException('Missing raw body');
       try {
         event = this.stripeService.constructWebhookEvent(req.rawBody, signature);
-      } catch (err) {
+      } catch (err: any) {
         return { error: `Webhook error: ${err.message}` };
       }
     } else {
-      // Desarrollo sin webhook secret — usar el body directamente
       event = req.body;
     }
 

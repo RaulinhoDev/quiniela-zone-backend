@@ -14,11 +14,15 @@ export declare class AdminService {
     getDashboard(): Promise<{
         metricas: {
             totalUsuarios: number;
+            usuariosPremium: number;
             usuariosEstaSemana: number;
             totalQuinielas: number;
             quinielasActivas: number;
             quinielasEsperando: number;
+            quinielasFinalizadas: number;
+            totalParticipantes: number;
             totalPredicciones: number;
+            prediccionesEstaSemana: number;
             partidosHoy: number;
             partidosEnVivo: number;
         };
@@ -43,7 +47,7 @@ export declare class AdminService {
         }[];
     }>;
     getUserDetail(userId: number): Promise<{
-        user: User;
+        user: User | null;
         quinielas: {
             id: number;
             name: string;

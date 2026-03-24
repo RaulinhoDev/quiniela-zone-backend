@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
@@ -22,12 +23,13 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const user_entity_1 = require("../users/user.entity");
 const email_service_1 = require("../email/email.service");
-let AuthService = class AuthService {
+let AuthService = AuthService_1 = class AuthService {
     constructor(userRepo, jwtService, configService, emailService) {
         this.userRepo = userRepo;
         this.jwtService = jwtService;
         this.configService = configService;
         this.emailService = emailService;
+        this.logger = new common_1.Logger(AuthService_1.name);
     }
     async register(dto) {
         const exists = await this.userRepo.findOne({
@@ -40,25 +42,29 @@ let AuthService = class AuthService {
         const verification_token = isDev ? null : crypto.randomBytes(32).toString('hex');
         const verification_expires = isDev ? null : new Date(Date.now() + 24 * 60 * 60 * 1000);
         const user = this.userRepo.create({
-            ...dto,
+            email: dto.email,
+            username: dto.username,
+            full_name: dto.full_name,
+            country: dto.country,
             password_hash,
             role: user_entity_1.UserRole.USER,
             is_verified: isDev,
-            verification_token,
-            verification_expires,
+            verification_token: verification_token ?? undefined,
+            verification_expires: verification_expires ?? undefined,
         });
         dto.email = dto.email.trim().toLowerCase();
         dto.username = dto.username.trim().replace(/[^a-zA-Z0-9_]/g, '');
         dto.full_name = dto.full_name?.trim().substring(0, 100);
         await this.userRepo.save(user);
-        if (!isDev) {
+        this.logger.log(`Nuevo usuario registrado: ${user.username} (${user.email})`);
+        if (!isDev && verification_token) {
             await this.emailService.sendVerificationEmail(user.email, user.username, verification_token);
             return {
                 message: 'Cuenta creada. Revisá tu email para verificar tu cuenta.',
                 email: user.email,
             };
         }
-        return this.token(user);
+        return this.tokenWithRefresh(user);
     }
     async verifyEmail(token) {
         const user = await this.userRepo.findOne({
@@ -71,21 +77,24 @@ let AuthService = class AuthService {
         }
         await this.userRepo.update(user.id, {
             is_verified: true,
-            verification_token: null,
-            verification_expires: null,
+            verification_token: undefined,
+            verification_expires: undefined,
         });
-        return this.token({ ...user, is_verified: true });
+        return this.tokenWithRefresh({ ...user, is_verified: true });
     }
     async login(dto) {
         const user = await this.userRepo.findOne({ where: { email: dto.email } });
-        if (!user || !await bcrypt.compare(dto.password, user.password_hash)) {
+        const passwordMatch = user ? await bcrypt.compare(dto.password, user.password_hash) : false;
+        if (!user || !passwordMatch) {
+            this.logger.warn(`Login fallido para email: ${dto.email}`);
             throw new common_1.UnauthorizedException('Credenciales inválidas');
         }
+        this.logger.log(`Login exitoso: ${user.username} (${user.email})`);
         const isDev = this.configService.get('REQUIRE_EMAIL_VERIFICATION') !== 'true';
         if (!isDev && !user.is_verified) {
             throw new common_1.UnauthorizedException('Debés verificar tu email antes de iniciar sesión');
         }
-        return this.token(user);
+        return this.tokenWithRefresh(user);
     }
     async forgotPassword(email) {
         const user = await this.userRepo.findOne({ where: { email } });
@@ -109,13 +118,15 @@ let AuthService = class AuthService {
         const password_hash = await bcrypt.hash(newPassword, 12);
         await this.userRepo.update(user.id, {
             password_hash,
-            reset_password_token: null,
-            reset_password_expires: null,
+            reset_password_token: undefined,
+            reset_password_expires: undefined,
         });
         return { message: 'Contraseña actualizada correctamente' };
     }
     async changePassword(userId, currentPassword, newPassword) {
         const user = await this.userRepo.findOne({ where: { id: userId } });
+        if (!user)
+            throw new common_1.NotFoundException('Usuario no encontrado');
         if (!await bcrypt.compare(currentPassword, user.password_hash)) {
             throw new common_1.BadRequestException('La contraseña actual es incorrecta');
         }
@@ -127,11 +138,45 @@ let AuthService = class AuthService {
         await this.userRepo.update(userId, dto);
         return this.userRepo.findOne({
             where: { id: userId },
-            select: ['id', 'email', 'username', 'full_name', 'country', 'role', 'is_premium'],
+            select: ['id', 'email', 'username', 'full_name', 'country', 'role', 'is_premium', 'is_verified'],
         });
     }
     async validateUser(id) {
         return this.userRepo.findOne({ where: { id } });
+    }
+    async refreshToken(refreshToken) {
+        const user = await this.userRepo.findOne({ where: { refresh_token: refreshToken } });
+        if (!user || !user.refresh_token_expires || new Date() > user.refresh_token_expires) {
+            throw new common_1.UnauthorizedException('Refresh token inválido o expirado');
+        }
+        const newRefreshToken = crypto.randomBytes(40).toString('hex');
+        const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await this.userRepo.update(user.id, {
+            refresh_token: newRefreshToken,
+            refresh_token_expires: expires,
+        });
+        return {
+            ...this.token(user),
+            refresh_token: newRefreshToken,
+        };
+    }
+    async revokeRefreshToken(userId) {
+        await this.userRepo.update(userId, {
+            refresh_token: undefined,
+            refresh_token_expires: undefined,
+        });
+    }
+    async tokenWithRefresh(user) {
+        const refresh_token = crypto.randomBytes(40).toString('hex');
+        const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await this.userRepo.update(user.id, {
+            refresh_token,
+            refresh_token_expires: expires,
+        });
+        return {
+            ...this.token(user),
+            refresh_token,
+        };
     }
     token(user) {
         return {
@@ -146,12 +191,13 @@ let AuthService = class AuthService {
                 country: user.country,
                 full_name: user.full_name,
                 is_verified: user.is_verified,
+                is_premium: user.is_premium,
             },
         };
     }
 };
 exports.AuthService = AuthService;
-exports.AuthService = AuthService = __decorate([
+exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [typeorm_2.Repository,

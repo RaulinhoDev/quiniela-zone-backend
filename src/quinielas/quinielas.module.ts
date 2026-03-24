@@ -9,12 +9,13 @@ import { Prediccion } from './prediccion.entity';
 import { ScoringRule } from './scoring-rule.entity';
 import { Match } from '../matches/match.entity';
 import { Matchday } from '../matchdays/matchday.entity';
+import { User } from '../users/user.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Quiniela, QuinielaJornada, QuinielaParticipante,
-      Prediccion, ScoringRule, Match, Matchday,
+      Prediccion, ScoringRule, Match, Matchday, User,
     ]),
   ],
   providers:   [QuinielasService],

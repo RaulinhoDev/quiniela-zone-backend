@@ -36,13 +36,17 @@ let AdminService = class AdminService {
         manana.setDate(manana.getDate() + 1);
         const inicioSemana = new Date(hoy);
         inicioSemana.setDate(inicioSemana.getDate() - 7);
-        const [totalUsuarios, usuariosEstaSemana, totalQuinielas, quinielasActivas, quinielasEsperando, totalPredicciones, partidosHoy, partidosEnVivo,] = await Promise.all([
+        const [totalUsuarios, usuariosPremium, usuariosEstaSemana, totalQuinielas, quinielasActivas, quinielasEsperando, quinielasFinalizadas, totalParticipantes, totalPredicciones, prediccionesEstaSemana, partidosHoy, partidosEnVivo,] = await Promise.all([
             this.userRepo.count(),
+            this.userRepo.count({ where: { is_premium: true } }),
             this.userRepo.count({ where: { created_at: (0, typeorm_2.MoreThanOrEqual)(inicioSemana) } }),
             this.quinielaRepo.count(),
             this.quinielaRepo.count({ where: { status: quiniela_entity_1.QuinielaStatus.ACTIVA } }),
             this.quinielaRepo.count({ where: { status: quiniela_entity_1.QuinielaStatus.ESPERANDO } }),
+            this.quinielaRepo.count({ where: { status: quiniela_entity_1.QuinielaStatus.FINALIZADA } }),
+            this.participanteRepo.count(),
             this.prediccionRepo.count(),
+            this.prediccionRepo.createQueryBuilder('p').where('p.created_at >= :inicio', { inicio: inicioSemana }).getCount(),
             this.matchRepo
                 .createQueryBuilder('m')
                 .where('m.match_date >= :hoy', { hoy })
@@ -51,7 +55,7 @@ let AdminService = class AdminService {
             this.matchRepo.count({ where: { status: match_entity_1.MatchStatus.LIVE } }),
         ]);
         const ultimosUsuarios = await this.userRepo.find({
-            select: ['id', 'username', 'email', 'country', 'role', 'created_at'],
+            select: ['id', 'username', 'email', 'country', 'role', 'is_premium', 'created_at'],
             order: { created_at: 'DESC' },
             take: 5,
         });
@@ -71,11 +75,15 @@ let AdminService = class AdminService {
         return {
             metricas: {
                 totalUsuarios,
+                usuariosPremium,
                 usuariosEstaSemana,
                 totalQuinielas,
                 quinielasActivas,
                 quinielasEsperando,
+                quinielasFinalizadas,
+                totalParticipantes,
                 totalPredicciones,
+                prediccionesEstaSemana,
                 partidosHoy,
                 partidosEnVivo,
             },

@@ -8,6 +8,7 @@ export declare class AuthService {
     private jwtService;
     private configService;
     private emailService;
+    private readonly logger;
     constructor(userRepo: Repository<User>, jwtService: JwtService, configService: ConfigService, emailService: EmailService);
     register(dto: {
         email: string;
@@ -16,6 +17,7 @@ export declare class AuthService {
         full_name?: string;
         country?: string;
     }): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -25,12 +27,14 @@ export declare class AuthService {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     } | {
         message: string;
         email: string;
     }>;
     verifyEmail(token: string): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -40,12 +44,14 @@ export declare class AuthService {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     }>;
     login(dto: {
         email: string;
         password: string;
     }): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -55,6 +61,7 @@ export declare class AuthService {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     }>;
     forgotPassword(email: string): Promise<{
@@ -69,7 +76,23 @@ export declare class AuthService {
     updateProfile(userId: number, dto: {
         full_name?: string;
         country?: string;
-    }): Promise<User>;
-    validateUser(id: number): Promise<User>;
+    }): Promise<User | null>;
+    validateUser(id: number): Promise<User | null>;
+    refreshToken(refreshToken: string): Promise<{
+        refresh_token: string;
+        access_token: string;
+        user: {
+            id: number;
+            email: string;
+            username: string;
+            role: UserRole;
+            country: string;
+            full_name: string;
+            is_verified: boolean;
+            is_premium: boolean;
+        };
+    }>;
+    revokeRefreshToken(userId: number): Promise<void>;
+    private tokenWithRefresh;
     private token;
 }

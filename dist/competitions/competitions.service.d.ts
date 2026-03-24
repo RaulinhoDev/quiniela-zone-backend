@@ -5,6 +5,7 @@ import { Competition } from './competition.entity';
 import { Matchday } from '../matchdays/matchday.entity';
 import { Match } from '../matches/match.entity';
 import { QuinielasService } from '../quinielas/quinielas.service';
+import { SseService } from '../events/sse.service';
 export declare class CompetitionsService {
     private compRepo;
     private matchdayRepo;
@@ -12,8 +13,9 @@ export declare class CompetitionsService {
     private httpService;
     private configService;
     private quinielasService;
+    private sseService;
     private readonly logger;
-    constructor(compRepo: Repository<Competition>, matchdayRepo: Repository<Matchday>, matchRepo: Repository<Match>, httpService: HttpService, configService: ConfigService, quinielasService: QuinielasService);
+    constructor(compRepo: Repository<Competition>, matchdayRepo: Repository<Matchday>, matchRepo: Repository<Match>, httpService: HttpService, configService: ConfigService, quinielasService: QuinielasService, sseService: SseService);
     findAll(): Promise<Competition[]>;
     findOne(id: number): Promise<Competition>;
     getMatchdays(competitionId: number): Promise<Matchday[]>;
@@ -24,7 +26,7 @@ export declare class CompetitionsService {
     getTorneos(competitionId: number, season: string): Promise<any[]>;
     createMatchday(data: Partial<Matchday>): Promise<Matchday>;
     createMatch(data: Partial<Match>): Promise<Match>;
-    updateResult(matchId: number, homeScore: number, awayScore: number): Promise<Match>;
+    updateResult(matchId: number, homeScore: number, awayScore: number): Promise<Match | null>;
     private mapStatus;
     private sleep;
 }

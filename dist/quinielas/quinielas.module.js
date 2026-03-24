@@ -18,6 +18,7 @@ const prediccion_entity_1 = require("./prediccion.entity");
 const scoring_rule_entity_1 = require("./scoring-rule.entity");
 const match_entity_1 = require("../matches/match.entity");
 const matchday_entity_1 = require("../matchdays/matchday.entity");
+const user_entity_1 = require("../users/user.entity");
 let QuinielasModule = class QuinielasModule {
 };
 exports.QuinielasModule = QuinielasModule;
@@ -26,7 +27,7 @@ exports.QuinielasModule = QuinielasModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([
                 quiniela_entity_1.Quiniela, quiniela_jornada_entity_1.QuinielaJornada, quiniela_participante_entity_1.QuinielaParticipante,
-                prediccion_entity_1.Prediccion, scoring_rule_entity_1.ScoringRule, match_entity_1.Match, matchday_entity_1.Matchday,
+                prediccion_entity_1.Prediccion, scoring_rule_entity_1.ScoringRule, match_entity_1.Match, matchday_entity_1.Matchday, user_entity_1.User,
             ]),
         ],
         providers: [quinielas_service_1.QuinielasService],

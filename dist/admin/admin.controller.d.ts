@@ -5,11 +5,15 @@ export declare class AdminController {
     getDashboard(): Promise<{
         metricas: {
             totalUsuarios: number;
+            usuariosPremium: number;
             usuariosEstaSemana: number;
             totalQuinielas: number;
             quinielasActivas: number;
             quinielasEsperando: number;
+            quinielasFinalizadas: number;
+            totalParticipantes: number;
             totalPredicciones: number;
+            prediccionesEstaSemana: number;
             partidosHoy: number;
             partidosEnVivo: number;
         };
@@ -34,7 +38,7 @@ export declare class AdminController {
         }[];
     }>;
     getUserDetail(id: number): Promise<{
-        user: import("../users/user.entity").User;
+        user: import("../users/user.entity").User | null;
         quinielas: {
             id: number;
             name: string;

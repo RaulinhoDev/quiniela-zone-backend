@@ -19,6 +19,8 @@ export declare class User {
     verification_expires: Date;
     reset_password_token: string;
     reset_password_expires: Date;
+    refresh_token: string;
+    refresh_token_expires: Date;
     created_at: Date;
     updated_at: Date;
 }

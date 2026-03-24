@@ -16,6 +16,7 @@ const competition_entity_1 = require("./competition.entity");
 const matchday_entity_1 = require("../matchdays/matchday.entity");
 const match_entity_1 = require("../matches/match.entity");
 const quinielas_module_1 = require("../quinielas/quinielas.module");
+const events_module_1 = require("../events/events.module");
 let CompetitionsModule = class CompetitionsModule {
 };
 exports.CompetitionsModule = CompetitionsModule;
@@ -25,6 +26,7 @@ exports.CompetitionsModule = CompetitionsModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([competition_entity_1.Competition, matchday_entity_1.Matchday, match_entity_1.Match]),
             axios_1.HttpModule,
             quinielas_module_1.QuinielasModule,
+            events_module_1.EventsModule,
         ],
         providers: [competitions_service_1.CompetitionsService],
         controllers: [competitions_controller_1.CompetitionsController],

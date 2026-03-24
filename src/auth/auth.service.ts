@@ -1,6 +1,6 @@
 import {
   Injectable, UnauthorizedException, ConflictException,
-  NotFoundException, BadRequestException
+  NotFoundException, BadRequestException, InternalServerErrorException, Logger
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +13,8 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
     private jwtService: JwtService,
@@ -40,12 +42,15 @@ export class AuthService {
     const verification_expires = isDev ? null : new Date(Date.now() + 24 * 60 * 60 * 1000); // 24hs
 
     const user = this.userRepo.create({
-      ...dto,
+      email:                dto.email,
+      username:             dto.username,
+      full_name:            dto.full_name,
+      country:              dto.country,
       password_hash,
-      role:         UserRole.USER,
-      is_verified:  isDev, // true en dev, false en prod
-      verification_token,
-      verification_expires,
+      role:                 UserRole.USER,
+      is_verified:          isDev,
+      verification_token:   verification_token ?? undefined,
+      verification_expires: verification_expires ?? undefined,
     });
 
     // Sanitizar inputs — eliminar HTML y espacios extra
@@ -54,9 +59,10 @@ export class AuthService {
     dto.full_name = dto.full_name?.trim().substring(0, 100);
 
     await this.userRepo.save(user);
+    this.logger.log(`Nuevo usuario registrado: ${user.username} (${user.email})`);
 
     // Enviar email de verificación solo en producción
-    if (!isDev) {
+    if (!isDev && verification_token) {
       await this.emailService.sendVerificationEmail(
         user.email, user.username, verification_token
       );
@@ -66,7 +72,7 @@ export class AuthService {
       };
     }
 
-    return this.token(user);
+    return this.tokenWithRefresh(user);
   }
 
   async verifyEmail(token: string) {
@@ -81,20 +87,23 @@ export class AuthService {
     }
 
     await this.userRepo.update(user.id, {
-      is_verified:         true,
-      verification_token:  null,
-      verification_expires: null,
+      is_verified:          true,
+      verification_token:   undefined,
+      verification_expires: undefined,
     });
 
-    return this.token({ ...user, is_verified: true } as User);
+    return this.tokenWithRefresh({ ...user, is_verified: true } as User);
   }
 
   async login(dto: { email: string; password: string }) {
     const user = await this.userRepo.findOne({ where: { email: dto.email } });
 
-    if (!user || !await bcrypt.compare(dto.password, user.password_hash)) {
+    const passwordMatch = user ? await bcrypt.compare(dto.password, user.password_hash) : false;
+    if (!user || !passwordMatch) {
+      this.logger.warn(`Login fallido para email: ${dto.email}`);
       throw new UnauthorizedException('Credenciales inválidas');
     }
+    this.logger.log(`Login exitoso: ${user.username} (${user.email})`);
 
     // En producción verificar que el email esté confirmado
     const isDev = this.configService.get('REQUIRE_EMAIL_VERIFICATION') !== 'true';
@@ -102,7 +111,7 @@ export class AuthService {
       throw new UnauthorizedException('Debés verificar tu email antes de iniciar sesión');
     }
 
-    return this.token(user);
+    return this.tokenWithRefresh(user);
   }
 
   async forgotPassword(email: string) {
@@ -136,8 +145,8 @@ export class AuthService {
 
     await this.userRepo.update(user.id, {
       password_hash,
-      reset_password_token:   null,
-      reset_password_expires: null,
+      reset_password_token:   undefined,
+      reset_password_expires: undefined,
     });
 
     return { message: 'Contraseña actualizada correctamente' };
@@ -145,6 +154,7 @@ export class AuthService {
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
 
     if (!await bcrypt.compare(currentPassword, user.password_hash)) {
       throw new BadRequestException('La contraseña actual es incorrecta');
@@ -160,12 +170,56 @@ export class AuthService {
     await this.userRepo.update(userId, dto);
     return this.userRepo.findOne({
       where: { id: userId },
-      select: ['id', 'email', 'username', 'full_name', 'country', 'role', 'is_premium'],
+      select: ['id', 'email', 'username', 'full_name', 'country', 'role', 'is_premium', 'is_verified'],
     });
   }
 
   async validateUser(id: number) {
     return this.userRepo.findOne({ where: { id } });
+  }
+
+  async refreshToken(refreshToken: string) {
+    const user = await this.userRepo.findOne({ where: { refresh_token: refreshToken } });
+
+    if (!user || !user.refresh_token_expires || new Date() > user.refresh_token_expires) {
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
+
+    // Rotar el refresh token
+    const newRefreshToken = crypto.randomBytes(40).toString('hex');
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 días
+
+    await this.userRepo.update(user.id, {
+      refresh_token:         newRefreshToken,
+      refresh_token_expires: expires,
+    });
+
+    return {
+      ...this.token(user),
+      refresh_token: newRefreshToken,
+    };
+  }
+
+  async revokeRefreshToken(userId: number) {
+    await this.userRepo.update(userId, {
+      refresh_token:         undefined,
+      refresh_token_expires: undefined,
+    });
+  }
+
+  private async tokenWithRefresh(user: User) {
+    const refresh_token = crypto.randomBytes(40).toString('hex');
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 días
+
+    await this.userRepo.update(user.id, {
+      refresh_token,
+      refresh_token_expires: expires,
+    });
+
+    return {
+      ...this.token(user),
+      refresh_token,
+    };
   }
 
   private token(user: User) {
@@ -174,13 +228,14 @@ export class AuthService {
         sub: user.id, email: user.email, role: user.role
       }),
       user: {
-        id:         user.id,
-        email:      user.email,
-        username:   user.username,
-        role:       user.role,
-        country:    user.country,
-        full_name:  user.full_name,
+        id:          user.id,
+        email:       user.email,
+        username:    user.username,
+        role:        user.role,
+        country:     user.country,
+        full_name:   user.full_name,
         is_verified: user.is_verified,
+        is_premium:  user.is_premium,
       },
     };
   }

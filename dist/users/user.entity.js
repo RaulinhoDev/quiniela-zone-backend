@@ -88,6 +88,15 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "reset_password_expires", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    (0, class_transformer_1.Exclude)(),
+    __metadata("design:type", String)
+], User.prototype, "refresh_token", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'datetime' }),
+    __metadata("design:type", Date)
+], User.prototype, "refresh_token_expires", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);

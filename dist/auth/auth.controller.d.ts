@@ -9,6 +9,7 @@ export declare class AuthController {
         full_name?: string;
         country?: string;
     }): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -18,6 +19,7 @@ export declare class AuthController {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     } | {
         message: string;
@@ -27,6 +29,7 @@ export declare class AuthController {
         email: string;
         password: string;
     }): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -36,9 +39,11 @@ export declare class AuthController {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     }>;
     verifyEmail(token: string): Promise<{
+        refresh_token: string;
         access_token: string;
         user: {
             id: number;
@@ -48,6 +53,7 @@ export declare class AuthController {
             country: string;
             full_name: string;
             is_verified: boolean;
+            is_premium: boolean;
         };
     }>;
     forgotPassword(dto: {
@@ -61,14 +67,43 @@ export declare class AuthController {
     }): Promise<{
         message: string;
     }>;
-    changePassword(req: any, dto: {
+    changePassword(req: {
+        user: {
+            id: number;
+        };
+    }, dto: {
         current_password: string;
         new_password: string;
     }): Promise<{
         message: string;
     }>;
-    updateProfile(req: any, dto: {
+    updateProfile(req: {
+        user: {
+            id: number;
+        };
+    }, dto: {
         full_name?: string;
         country?: string;
-    }): Promise<import("../users/user.entity").User>;
+    }): Promise<import("../users/user.entity").User | null>;
+    refresh(dto: {
+        refresh_token: string;
+    }): Promise<{
+        refresh_token: string;
+        access_token: string;
+        user: {
+            id: number;
+            email: string;
+            username: string;
+            role: import("../users/user.entity").UserRole;
+            country: string;
+            full_name: string;
+            is_verified: boolean;
+            is_premium: boolean;
+        };
+    }>;
+    logout(req: {
+        user: {
+            id: number;
+        };
+    }): Promise<void>;
 }

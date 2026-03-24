@@ -66,4 +66,5 @@ export class CompetitionsController {
   ) {
     return this.service.updateResult(id, body.home_score, body.away_score);
   }
+
 }

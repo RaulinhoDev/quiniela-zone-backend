@@ -26,11 +26,23 @@ let QuinielasController = class QuinielasController {
     findOne(id) {
         return this.quinielasService.findOne(id);
     }
-    getRanking(id) {
-        return this.quinielasService.getRanking(id);
+    getRanking(id, page = '1', limit = '50') {
+        return this.quinielasService.getRanking(id, parseInt(page), parseInt(limit));
     }
     misQuinielas(req) {
         return this.quinielasService.findMisQuinielas(req.user.id);
+    }
+    perfilPublico(username) {
+        return this.quinielasService.getPerfilPublico(username);
+    }
+    misEstadisticas(req) {
+        return this.quinielasService.getMisEstadisticas(req.user.id);
+    }
+    misTrofeos(req) {
+        return this.quinielasService.getMisTrofeos(req.user.id);
+    }
+    misLimites(req) {
+        return this.quinielasService.getMisLimites(req.user);
     }
     unirse(req, id) {
         return this.quinielasService.unirse(req.user, id);
@@ -38,11 +50,20 @@ let QuinielasController = class QuinielasController {
     unirseByCode(req, body) {
         return this.quinielasService.unirseByCode(req.user, body.invite_code);
     }
-    abrirJornada(req, id, dto) {
-        return this.quinielasService.abrirJornada(req.user, id, dto);
+    abrirQuiniela(req, id) {
+        return this.quinielasService.abrirQuiniela(req.user, id);
     }
     enviarPredicciones(req, id, jornadaId, dto) {
         return this.quinielasService.enviarPredicciones(req.user, id, jornadaId, dto);
+    }
+    historial(req, id) {
+        return this.quinielasService.getHistorial(req.user, id);
+    }
+    todasPredicciones(req, id, jornadaId) {
+        return this.quinielasService.getTodasPredicciones(req.user, id, jornadaId);
+    }
+    puntosPorJornada(req, id, jornadaId) {
+        return this.quinielasService.getPuntosPorJornada(req.user, id, jornadaId);
     }
     misPredicciones(req, id, jornadaId) {
         return this.quinielasService.getMisPredicciones(req.user, id, jornadaId);
@@ -68,8 +89,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/ranking'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Object, Object]),
     __metadata("design:returntype", void 0)
 ], QuinielasController.prototype, "getRanking", null);
 __decorate([
@@ -80,6 +103,37 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], QuinielasController.prototype, "misQuinielas", null);
+__decorate([
+    (0, common_1.Get)('perfil/:username'),
+    __param(0, (0, common_1.Param)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "perfilPublico", null);
+__decorate([
+    (0, common_1.Get)('mis/estadisticas'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "misEstadisticas", null);
+__decorate([
+    (0, common_1.Get)('mis/trofeos'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "misTrofeos", null);
+__decorate([
+    (0, common_1.Get)('mis/limites'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "misLimites", null);
 __decorate([
     (0, common_1.Post)(':id/unirse'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
@@ -99,15 +153,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], QuinielasController.prototype, "unirseByCode", null);
 __decorate([
-    (0, common_1.Post)(':id/jornadas'),
+    (0, common_1.Post)(':id/abrir'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Object]),
+    __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", void 0)
-], QuinielasController.prototype, "abrirJornada", null);
+], QuinielasController.prototype, "abrirQuiniela", null);
 __decorate([
     (0, common_1.Post)(':id/jornadas/:jornadaId/predicciones'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
@@ -119,6 +172,35 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Number, Object]),
     __metadata("design:returntype", void 0)
 ], QuinielasController.prototype, "enviarPredicciones", null);
+__decorate([
+    (0, common_1.Get)(':id/historial'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "historial", null);
+__decorate([
+    (0, common_1.Get)(':id/jornadas/:jornadaId/todas-predicciones'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Param)('jornadaId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "todasPredicciones", null);
+__decorate([
+    (0, common_1.Get)(':id/jornadas/:jornadaId/puntos'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Param)('jornadaId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "puntosPorJornada", null);
 __decorate([
     (0, common_1.Get)(':id/jornadas/:jornadaId/mis-predicciones'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
