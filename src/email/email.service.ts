@@ -20,11 +20,11 @@ export class EmailService {
       await this.resend.emails.send({
         from:    fromEmail,
         to:      email,
-        subject: '✅ Verificá tu cuenta en Quiniela Zone',
+        subject: 'Verificá tu cuenta en Quiniela Zone',
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0d0f14; color: #f0f2f8;">
-            <h1 style="color: #00e5a0; font-size: 28px; margin-bottom: 8px;">⚽ Quiniela Zone</h1>
-            <h2 style="font-size: 20px; margin-bottom: 16px;">Hola ${username}, ¡bienvenido!</h2>
+            <h1 style="color: #00e5a0; font-size: 28px; margin-bottom: 8px; letter-spacing: 0.05em;">QUINIELA ZONE</h1>
+            <h2 style="font-size: 20px; margin-bottom: 16px;">Hola ${username}, bienvenido.</h2>
             <p style="color: #8892b0; line-height: 1.6; margin-bottom: 24px;">
               Ya casi estás listo. Solo necesitamos verificar tu correo electrónico para activar tu cuenta.
             </p>
@@ -58,10 +58,10 @@ export class EmailService {
       await this.resend.emails.send({
         from:    fromEmail,
         to:      email,
-        subject: '🔐 Recuperar contraseña — Quiniela Zone',
+        subject: 'Recuperar contraseña — Quiniela Zone',
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0d0f14; color: #f0f2f8;">
-            <h1 style="color: #00e5a0; font-size: 28px; margin-bottom: 8px;">⚽ Quiniela Zone</h1>
+            <h1 style="color: #00e5a0; font-size: 28px; margin-bottom: 8px; letter-spacing: 0.05em;">QUINIELA ZONE</h1>
             <h2 style="font-size: 20px; margin-bottom: 16px;">Hola ${username}, ¿olvidaste tu contraseña?</h2>
             <p style="color: #8892b0; line-height: 1.6; margin-bottom: 24px;">
               Recibimos una solicitud para restablecer tu contraseña. Hacé clic en el botón para crear una nueva.

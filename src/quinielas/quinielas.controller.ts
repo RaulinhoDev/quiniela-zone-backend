@@ -40,6 +40,20 @@ export class QuinielasController {
     return this.quinielasService.getRanking(id, parseInt(page), parseInt(limit));
   }
 
+  // ── Directorio de quinielas públicas (sin auth)
+  @Get('publicas/explorar')
+  getPublicas(
+    @Query('competition_id') competition_id?: string,
+    @Query('page')           page            = '1',
+    @Query('limit')          limit           = '20',
+  ) {
+    return this.quinielasService.getPublicas(
+      competition_id ? parseInt(competition_id) : undefined,
+      parseInt(page),
+      parseInt(limit),
+    );
+  }
+
   // ── Mis quinielas (en las que participo)
   @Get('mis/quinielas')
   @UseGuards(AuthGuard('jwt'))

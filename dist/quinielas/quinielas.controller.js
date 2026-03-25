@@ -29,6 +29,9 @@ let QuinielasController = class QuinielasController {
     getRanking(id, page = '1', limit = '50') {
         return this.quinielasService.getRanking(id, parseInt(page), parseInt(limit));
     }
+    getPublicas(competition_id, page = '1', limit = '20') {
+        return this.quinielasService.getPublicas(competition_id ? parseInt(competition_id) : undefined, parseInt(page), parseInt(limit));
+    }
     misQuinielas(req) {
         return this.quinielasService.findMisQuinielas(req.user.id);
     }
@@ -95,6 +98,15 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object, Object]),
     __metadata("design:returntype", void 0)
 ], QuinielasController.prototype, "getRanking", null);
+__decorate([
+    (0, common_1.Get)('publicas/explorar'),
+    __param(0, (0, common_1.Query)('competition_id')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], QuinielasController.prototype, "getPublicas", null);
 __decorate([
     (0, common_1.Get)('mis/quinielas'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

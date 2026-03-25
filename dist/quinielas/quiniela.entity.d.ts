@@ -22,6 +22,7 @@ export declare class Quiniela {
     entry_fee: number;
     season: string;
     is_active: boolean;
+    is_public: boolean;
     created_at: Date;
     updated_at: Date;
     participantes: QuinielaParticipante[];

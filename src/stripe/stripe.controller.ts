@@ -85,6 +85,18 @@ export class StripeController {
         }
         break;
       }
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        const customer     = subscription.customer;
+        const user = await this.userRepo.findOne({
+          where: { stripe_customer_id: customer }
+        });
+        if (user) {
+          const isActive = subscription.status === 'active';
+          await this.userRepo.update(user.id, { is_premium: isActive });
+        }
+        break;
+      }
     }
 
     return { received: true };

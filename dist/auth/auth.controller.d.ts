@@ -1,7 +1,10 @@
 import { AuthService } from './auth.service';
+import { Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 export declare class AuthController {
     private authService;
-    constructor(authService: AuthService);
+    private userRepo;
+    constructor(authService: AuthService, userRepo: Repository<User>);
     register(dto: {
         email: string;
         username: string;
@@ -84,7 +87,12 @@ export declare class AuthController {
     }, dto: {
         full_name?: string;
         country?: string;
-    }): Promise<import("../users/user.entity").User | null>;
+    }): Promise<User | null>;
+    me(req: {
+        user: {
+            id: number;
+        };
+    }): Promise<any>;
     refresh(dto: {
         refresh_token: string;
     }): Promise<{

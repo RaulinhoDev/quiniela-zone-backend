@@ -27,6 +27,7 @@ export interface CreateQuinielaDto {
   torneo: string;
   is_paid?: boolean;
   entry_fee?: number;
+  is_public?: boolean;
   scoring?: {
     exact_score_pts?: number;
     correct_winner_pts?: number;
@@ -72,6 +73,11 @@ export class QuinielasService {
 
   // ─── Crear quiniela ────────────────────────────────────────────
   async create(owner: User, dto: CreateQuinielaDto): Promise<Quiniela> {
+    // Quiniela pública solo para premium
+    if (dto.is_public && !owner.is_premium) {
+      throw new ForbiddenException('Solo los usuarios Premium pueden crear quinielas públicas.');
+    }
+
     // Límite para usuarios gratuitos: máximo 1 quiniela como owner
     if (!owner.is_premium) {
       const count = await this.quinielaRepo.count({ where: { owner_id: owner.id } });
@@ -109,8 +115,9 @@ export class QuinielasService {
       description:    dto.description,
       invite_code,
       season:         dto.season,
-      is_paid:        dto.is_paid  || false,
+      is_paid:        dto.is_paid   || false,
       entry_fee:      dto.entry_fee || 0,
+      is_public:      dto.is_public || false,
       is_active:      true,
       status:         QuinielaStatus.ESPERANDO,
     });
@@ -915,6 +922,56 @@ export class QuinielasService {
         limite_por_quiniela: user.is_premium
           ? PREMIUM_LIMITS.MAX_PARTICIPANTES_PREMIUM
           : PREMIUM_LIMITS.MAX_PARTICIPANTES_FREE,
+      },
+    };
+  }
+
+  // ─── Quinielas públicas (directorio) ───────────────────────────
+  async getPublicas(competition_id?: number, page = 1, limit = 20) {
+    const take = Math.min(limit, 50);
+    const skip = (page - 1) * take;
+
+    const qb = this.quinielaRepo.createQueryBuilder('q')
+      .leftJoin('q.owner', 'owner')
+      .leftJoin('q.competition', 'competition')
+      .leftJoin('q.participantes', 'participantes')
+      .addSelect(['owner.id', 'owner.username', 'competition.id', 'competition.name'])
+      .where('q.is_public = :pub', { pub: true })
+      .andWhere('q.status != :fin', { fin: QuinielaStatus.FINALIZADA })
+      .loadRelationCountAndMap('q.total_participantes', 'q.participantes')
+      .orderBy('q.created_at', 'DESC')
+      .take(take)
+      .skip(skip);
+
+    if (competition_id) {
+      qb.andWhere('q.competition_id = :cid', { cid: competition_id });
+    }
+
+    const [quinielas, total] = await qb.getManyAndCount();
+
+    return {
+      quinielas: quinielas.map(q => ({
+        id:                  q.id,
+        name:                q.name,
+        description:         q.description,
+        status:              q.status,
+        season:              q.season,
+        invite_code:         q.invite_code,
+        total_participantes: (q as any).total_participantes ?? 0,
+        competition: {
+          id:   (q.competition as any)?.id,
+          name: (q.competition as any)?.name,
+        },
+        owner: {
+          id:       (q.owner as any)?.id,
+          username: (q.owner as any)?.username,
+        },
+        created_at: q.created_at,
+      })),
+      pagination: {
+        total,
+        page,
+        total_pages: Math.ceil(total / take),
       },
     };
   }

@@ -1,3 +1,33 @@
+# Dependencies
 node_modules/
-.env
+
+# Build output
 dist/
+
+# Environment variables (NEVER subir al repo)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Keys y certificados
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx

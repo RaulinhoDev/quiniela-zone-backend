@@ -20,6 +20,7 @@ export interface CreateQuinielaDto {
     torneo: string;
     is_paid?: boolean;
     entry_fee?: number;
+    is_public?: boolean;
     scoring?: {
         exact_score_pts?: number;
         correct_winner_pts?: number;
@@ -217,6 +218,31 @@ export declare class QuinielasService {
         };
         participantes: {
             limite_por_quiniela: number;
+        };
+    }>;
+    getPublicas(competition_id?: number, page?: number, limit?: number): Promise<{
+        quinielas: {
+            id: number;
+            name: string;
+            description: string;
+            status: QuinielaStatus;
+            season: string;
+            invite_code: string;
+            total_participantes: any;
+            competition: {
+                id: any;
+                name: any;
+            };
+            owner: {
+                id: any;
+                username: any;
+            };
+            created_at: Date;
+        }[];
+        pagination: {
+            total: number;
+            page: number;
+            total_pages: number;
         };
     }>;
 }

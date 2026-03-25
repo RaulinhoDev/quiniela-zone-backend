@@ -17,9 +17,13 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const auth_service_1 = require("./auth.service");
 const throttler_1 = require("@nestjs/throttler");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
+const user_entity_1 = require("../users/user.entity");
 let AuthController = class AuthController {
-    constructor(authService) {
+    constructor(authService, userRepo) {
         this.authService = authService;
+        this.userRepo = userRepo;
     }
     register(dto) {
         return this.authService.register(dto);
@@ -41,6 +45,11 @@ let AuthController = class AuthController {
     }
     updateProfile(req, dto) {
         return this.authService.updateProfile(req.user.id, dto);
+    }
+    async me(req) {
+        const user = await this.userRepo.findOne({ where: { id: req.user.id } });
+        const { password_hash, verification_token, reset_password_token, refresh_token, ...data } = user;
+        return data;
     }
     refresh(dto) {
         return this.authService.refreshToken(dto.refresh_token);
@@ -109,6 +118,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "updateProfile", null);
 __decorate([
+    (0, common_1.Get)('me'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "me", null);
+__decorate([
     (0, common_1.Post)('refresh'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
@@ -128,6 +145,8 @@ __decorate([
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     (0, common_1.UseGuards)(throttler_1.ThrottlerGuard),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
+    __metadata("design:paramtypes", [auth_service_1.AuthService,
+        typeorm_2.Repository])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

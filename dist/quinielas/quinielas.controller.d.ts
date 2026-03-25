@@ -43,6 +43,31 @@ export declare class QuinielasController {
             total_pages: number;
         };
     }>;
+    getPublicas(competition_id?: string, page?: string, limit?: string): Promise<{
+        quinielas: {
+            id: number;
+            name: string;
+            description: string;
+            status: import("./quiniela.entity").QuinielaStatus;
+            season: string;
+            invite_code: string;
+            total_participantes: any;
+            competition: {
+                id: any;
+                name: any;
+            };
+            owner: {
+                id: any;
+                username: any;
+            };
+            created_at: Date;
+        }[];
+        pagination: {
+            total: number;
+            page: number;
+            total_pages: number;
+        };
+    }>;
     misQuinielas(req: AuthReq): Promise<import("./quiniela-participante.entity").QuinielaParticipante[]>;
     perfilPublico(username: string): Promise<{
         trofeos: {

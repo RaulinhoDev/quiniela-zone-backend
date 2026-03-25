@@ -58,6 +58,9 @@ export class Quiniela {
   @Column({ default: false })
   is_active: boolean;
 
+  @Column({ default: false })
+  is_public: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

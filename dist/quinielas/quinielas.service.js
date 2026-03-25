@@ -43,6 +43,9 @@ let QuinielasService = QuinielasService_1 = class QuinielasService {
         this.logger = new common_1.Logger(QuinielasService_1.name);
     }
     async create(owner, dto) {
+        if (dto.is_public && !owner.is_premium) {
+            throw new common_1.ForbiddenException('Solo los usuarios Premium pueden crear quinielas públicas.');
+        }
         if (!owner.is_premium) {
             const count = await this.quinielaRepo.count({ where: { owner_id: owner.id } });
             if (count >= exports.PREMIUM_LIMITS.MAX_QUINIELAS_FREE) {
@@ -71,6 +74,7 @@ let QuinielasService = QuinielasService_1 = class QuinielasService {
             season: dto.season,
             is_paid: dto.is_paid || false,
             entry_fee: dto.entry_fee || 0,
+            is_public: dto.is_public || false,
             is_active: true,
             status: quiniela_entity_1.QuinielaStatus.ESPERANDO,
         });
@@ -750,6 +754,50 @@ let QuinielasService = QuinielasService_1 = class QuinielasService {
                 limite_por_quiniela: user.is_premium
                     ? exports.PREMIUM_LIMITS.MAX_PARTICIPANTES_PREMIUM
                     : exports.PREMIUM_LIMITS.MAX_PARTICIPANTES_FREE,
+            },
+        };
+    }
+    async getPublicas(competition_id, page = 1, limit = 20) {
+        const take = Math.min(limit, 50);
+        const skip = (page - 1) * take;
+        const qb = this.quinielaRepo.createQueryBuilder('q')
+            .leftJoin('q.owner', 'owner')
+            .leftJoin('q.competition', 'competition')
+            .leftJoin('q.participantes', 'participantes')
+            .addSelect(['owner.id', 'owner.username', 'competition.id', 'competition.name'])
+            .where('q.is_public = :pub', { pub: true })
+            .andWhere('q.status != :fin', { fin: quiniela_entity_1.QuinielaStatus.FINALIZADA })
+            .loadRelationCountAndMap('q.total_participantes', 'q.participantes')
+            .orderBy('q.created_at', 'DESC')
+            .take(take)
+            .skip(skip);
+        if (competition_id) {
+            qb.andWhere('q.competition_id = :cid', { cid: competition_id });
+        }
+        const [quinielas, total] = await qb.getManyAndCount();
+        return {
+            quinielas: quinielas.map(q => ({
+                id: q.id,
+                name: q.name,
+                description: q.description,
+                status: q.status,
+                season: q.season,
+                invite_code: q.invite_code,
+                total_participantes: q.total_participantes ?? 0,
+                competition: {
+                    id: q.competition?.id,
+                    name: q.competition?.name,
+                },
+                owner: {
+                    id: q.owner?.id,
+                    username: q.owner?.username,
+                },
+                created_at: q.created_at,
+            })),
+            pagination: {
+                total,
+                page,
+                total_pages: Math.ceil(total / take),
             },
         };
     }

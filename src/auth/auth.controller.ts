@@ -5,11 +5,17 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    @InjectRepository(User) private userRepo: Repository<User>,
+  ) {}
 
   @Post('register')
   @Throttle({ auth: { ttl: 300000, limit: 15 } })
@@ -67,6 +73,15 @@ export class AuthController {
     @Body() dto: { full_name?: string; country?: string }
   ) {
     return this.authService.updateProfile(req.user.id, dto);
+  }
+
+  // Obtener datos frescos del usuario autenticado
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  async me(@Request() req: { user: { id: number } }) {
+    const user = await this.userRepo.findOne({ where: { id: req.user.id } });
+    const { password_hash, verification_token, reset_password_token, refresh_token, ...data } = user as any;
+    return data;
   }
 
   // Renovar access token con refresh token

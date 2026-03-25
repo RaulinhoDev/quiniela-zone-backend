@@ -80,6 +80,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Quiniela.prototype, "is_active", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Quiniela.prototype, "is_public", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Quiniela.prototype, "created_at", void 0);
